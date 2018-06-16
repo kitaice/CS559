@@ -1,0 +1,109 @@
+#ifdef VS 
+ 
+precision highp float;
+attribute vec3 position;
+attribute vec3 normal;
+uniform mat3 normalMatrix;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+varying vec3 N;
+varying vec3 v;
+varying vec3 uPos;
+uniform float time;
+varying vec3 modelN;
+varying vec3 modelX;
+varying vec3 lowb;
+varying vec3 upb;
+vec3 changeSize(vec3 vec_in, float angle)
+{
+  vec3 vec_out;
+  float size=1.0;
+  vec_out.x=(lowb.x*(1.0+abs(cos(angle))));
+  vec_out.y=(lowb.y*(1.0+abs(cos(angle))));
+  vec_out.z=(lowb.z*(1.0+abs(cos(angle))));
+  
+  return vec_out;
+}
+
+
+vec3 rotate(vec3 axis, float angle) {
+  mat4 m = mat4(cos(angle),sin(angle),0.0,0.0,
+                -sin(angle),cos(angle),0.0,0.0,
+                0.0,0.0,1.0,0.0,
+                0.0,0.0,0.0,1.0);
+	return (m * vec4(axis, 1.0)).xyz;
+}
+
+void main()
+{
+  modelX=position;
+  lowb=vec3(position.x*1.0,position.y*1.0,position.z*1.0);
+  upb=vec3(position.x*2.5,position.y*2.5,position.z*2.5);
+  modelN=normal;
+  
+  modelX.xyz = changeSize(modelX.xyz,3.0*time);
+  modelX=rotate(modelX,10.0*time);
+  
+  N = normalize(normalMatrix * modelN);
+  vec4 pos = modelViewMatrix * vec4(modelX, 1.0);
+  v = pos.xyz;
+  
+  uPos = position.xyz;
+  gl_Position = projectionMatrix * pos;
+}
+ 
+#else 
+ 
+precision highp float;
+varying vec3 rawX;
+uniform float time;
+uniform vec2 resolution;
+varying vec3 N;
+varying vec3 v;
+varying vec3 uPos;
+
+//const vec3  lightV1    = vec3(0.0,1.0,0.0); // stationary light
+const float lightI     = 1.0;               // only for diffuse component
+const float ambientC   = 0.15;
+const float diffuseC   = 0.7;
+const float specularC1 = 1.0;               // For stationary light
+const float specularE1 = 64.0;
+const float specularE2 = 12.0;
+const vec3  lightCol   = vec3(20.0,2.0,10.0);
+
+
+vec2 blinnPhongDir(vec3 lightDir, float lightInt, float Ka, float Kd, float Ks, float shininess)
+{
+  vec3 s = normalize(lightDir);
+  vec3 v = normalize(-v);
+  vec3 n = normalize(N);
+  vec3 h = normalize(v+s);
+  float diffuse = Ka + Kd * lightInt * max(0.0, dot(n, s));
+  float spec =  Ks * pow(max(0.0, dot(n,h)), shininess);
+  return vec2(diffuse, spec);
+}
+
+
+void main()
+{
+  
+  float specularC2 = 0.1; 
+  float angle      = 25.0*time;
+  vec3 lightV1     = vec3(sin(2.0*angle),2.5,cos(angle));
+  vec3 lightV2     = vec3(cos(angle),5.0,sin(angle));
+  vec3 lightCol   = vec3(time,0.2*time,0.5*time);
+  vec3 ColorS1 = blinnPhongDir(lightV1,0.0,1.0,0.0,specularC1,specularE1).y*lightCol;
+  vec3 ColorS2 = blinnPhongDir(lightV2,0.0,0.0,1.0,specularC2,specularE2).y*lightCol;
+  
+  float ys = uPos.y*5.0 - floor(uPos.y*5.0);
+  float xs = uPos.x*5.0 - floor(uPos.x*5.0);
+
+  float xc = smoothstep(.45,.85,xs);
+  float yc = smoothstep(.35,.55,ys);
+
+  vec3 res = vec3(xc*abs(sin(time)),yc*abs(cos(time)),(xc+yc)*abs(cos(time)));
+  vec3 ColorAD = blinnPhongDir(lightV1,lightI,ambientC,diffuseC,0.0,1.0).x*res;
+  gl_FragColor = vec4(ColorAD+ColorS1+ColorS2, 1.0);
+}
+ 
+#endif

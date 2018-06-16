@@ -1,0 +1,6 @@
+Simple: https://goo.gl/vUKdDq
+Description: No specific modification in vertex shader. Diffuse color and specular color are added in fragment shader. The direction of the light is the vector get from light position minus the position of the point.
+
+
+Fancier: https://goo.gl/LQ8NS8
+Desctription: In vertex shader, the size of the object is changed periodically by time, and the object is rotating according to the z axis, while the speed of rotation is controlled by time. In fragment shader, two diffuse colors are added. The direction and the color of two lights are keep changing periodically by the time. The color of the object is also changing periodically respect to time.

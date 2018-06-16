@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- CS559 Program 2  -->
+<head>
+    <meta charset="UTF-8">
+    <title>P2 Planes</title>
+</head>
+
+<body>
+<canvas id = "myCanvas" width="1200" height="900" style="border:1px solid #000000;"></canvas>
+
+
+<script src="plane.js"></script>
+<!-- paths give me a way to make something the copter can follow
+  -- but for now, they just go around in circles -->
+<script src="path.js"></script>
+<!-- the script that actually does stuff -->
+<script>
+    "use strict";
+    /** sample solution for the CS559 programming assignment 2
+     * students may look at this code, but not copy it verbatim
+     */
+
+    function myApp() {
+        // variables for the "program" - kept inside rather than global
+        var theCanvas;
+        var myContext;
+        // a slider for the speed of the second copter
+        //var slider;
+        // keep a list of all the copters - we can add more if we want
+        var planes = [];
+
+        // animation loop - clear, update, draw, schedule the next iteration
+        function draw() {
+            myContext.clearRect(0, 0, myCanvas.width, myCanvas.height);
+            //planes[1].speed = slider.value;
+            myContext.save();
+            planes.forEach(function(c) { c.update();})
+            planes.forEach(function(c) { c.draw(); })
+            myContext.restore();
+            window.requestAnimationFrame(draw);
+        }
+
+        // set up the elements
+        theCanvas = document.getElementById('myCanvas');
+        myContext = theCanvas.getContext('2d');
+        //slider = document.getElementById("slider1");
+        //slider.value = 1;
+
+        // make some copters
+        var path0=new Path(2,1,400,400,200);
+        planes.push(new plane(myContext,400,400,path0,"#ff7c19","white"));
+        var path1=new Path(5,0,200,200,300);
+        planes.push(new plane(myContext,200,200,path1,"white","#018c31"));
+        var path2=new Path(3,0.5,850,750,100);
+        planes.push(new plane(myContext,850,750,path2,"#00218c","#d6e023"));
+        var path3=new Path(0.5,0.5,600,100,700);
+        planes.push(new plane(myContext,600,100,path3,"#deedec","#b21a1a"));
+        draw();
+    }
+    // start the program when the window is done loading
+    window.onload=myApp;
+</script>
+
+</body>
+</html>
